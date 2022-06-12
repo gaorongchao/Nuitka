@@ -532,6 +532,28 @@ Replaced read-only module attribute '__spec__' with module attribute reference."
         return self, None, None
 
     def computeExpressionCall(self, call_node, call_args, call_kw, trace_collection):
+        if self.variable_trace is not None:
+            attribute_node = self.variable_trace.getAttributeNode()
+
+            # TODO: Function creations need better code generation for this to
+            # work, disabled for now, but important for optimization.
+            if (
+                attribute_node is not None
+                and not attribute_node.isExpressionFunctionCreation()
+            ):
+                # The variable itself is to be considered escaped no matter what, since
+                # we don't know exactly what the attribute is used for later on. We would
+                # have to attach the variable to the result created here in such a way,
+                # that e.g. calling it will make it escaped only.
+                trace_collection.markActiveVariableAsEscaped(self.variable)
+
+                return attribute_node.computeExpressionCall(
+                    call_node=call_node,
+                    call_args=call_args,
+                    call_kw=call_kw,
+                    trace_collection=trace_collection,
+                )
+
         # The called and the arguments escape for good.
         self.onContentEscapes(trace_collection)
         if call_args is not None:
