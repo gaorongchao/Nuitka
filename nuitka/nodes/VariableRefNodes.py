@@ -164,10 +164,14 @@ class ExpressionVariableRefBase(ExpressionBase):
 
     def isKnownToHaveAttribute(self, attribute_name):
         if self.variable_trace is not None:
+            type_shape = self.variable_trace.getTypeShape()
+
+            if type_shape.isKnownToHaveAttribute(attribute_name):
+                return True
+
             attribute_node = self.variable_trace.getAttributeNode()
 
             if attribute_node is not None:
-
                 return attribute_node.isKnownToHaveAttribute(attribute_name)
 
         return None
